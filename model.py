@@ -10,7 +10,9 @@ class Generator(nn.Module):
 		
 		self.Vis_DeCon=nn.Sequential(
 			nn.ConvTranspose2d(1,1,1,1))
-		self.IR_DeCon=nn.Sequential(
+		self.IR_DeCon_1=nn.Sequential(
+			nn.ConvTranspose2d(1,1,1,1))
+		self.IR_DeCon_4=nn.Sequential(
 			nn.ConvTranspose2d(1,1,4,4))
 
 		self.conv1=nn.Sequential(
@@ -59,13 +61,16 @@ class Generator(nn.Module):
 			nn.ReLU())
 
 		self.Decoder5=nn.Sequential(
-			nn.Conv2d(16,1,3,1,1),)
+			nn.Conv2d(16,1,3,1,1),
 			# nn.BatchNorm2d(1),
-			# nn.ReLU())
+			nn.Sigmoid())
 
 	def forward(self,vis,ir):
+		if vis.shape==ir.shape:
+			ir=self.IR_DeCon_1(ir)
+		else:
+			ir=self.IR_DeCon_4(ir)
 		vis=self.Vis_DeCon(vis)
-		ir=self.IR_DeCon(ir)
 		x=torch.cat((vis,ir),1)
 
 		x1=self.conv1(x)
@@ -104,6 +109,7 @@ class Discriminator_v(nn.Module):
 		self.fc=nn.Sequential(
 			nn.Linear(65536,1),
 			nn.Sigmoid())
+			# nn.Tanh())
 
 	def forward(self,v):
 		batch_szie=v.shape[0]
@@ -134,7 +140,7 @@ class Discriminator_i(nn.Module):
 			nn.ReLU())
 
 		self.fc=nn.Sequential(
-			nn.Linear(4096,1),
+			nn.Linear(65536,1),
 			nn.Sigmoid())
 
 	def forward(self,i):
@@ -148,7 +154,7 @@ class Discriminator_i(nn.Module):
 
 class DDcGAN(nn.Module):
 	"""docstring for DDcGAN"""
-	def __init__(self, if_train=False):
+	def __init__(self, if_train=True):
 		super(DDcGAN, self).__init__()
 		self.if_train=if_train
 
@@ -164,7 +170,10 @@ class DDcGAN(nn.Module):
 		# image_save(fusion_v[0:1,:,:,:],'./test/'+str(len(os.listdir('./test')))+'.jpg')
 		# image_save(fusion_v[1:2,:,:,:],'./test/'+str(len(os.listdir('./test')))+'.jpg')
 		if self.if_train:
-			fusion_i=self.down(fusion_v)
+			if vis.shape!=ir.shape:
+				fusion_i=self.down(fusion_v)
+			else:
+				fusion_i=fusion_v
 			score_v=self.Dv(vis)
 			score_i=self.Di(ir)
 			score_Gv=self.Dv(fusion_v)
