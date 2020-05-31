@@ -1,50 +1,54 @@
 import os
+import cv2
+import json
 import torch
 import numpy as np
-import torchvision
-from loss import *
-import torch.nn as nn
+from tqdm import tqdm
 from PIL import Image
-import torch.nn.functional as F
 from torchvision import transforms
+from torch.utils.data import Dataset, DataLoader
 
-loader=transforms.Compose([transforms.ToTensor()])  
-unloader=transforms.ToPILImage()
+class Load_Dataset(Dataset):
+	"""docstring for Load_Dataset"""
+	def __init__(self,root_dir,transforms):
+		super(Load_Dataset, self).__init__()
+		self.root_dir=root_dir
+		self.transforms=transforms
+		self.imageidlist=self.load_list()
 
-def image_save(tensor,name):
-	image=tensor.cpu().clone()
-	image=image.squeeze(0)
-	image=unloader(image)
-	image.save(name)
+	def __len__(self):
+		return len(self.imageidlist)
 
-def image_loader(image_name,gpu,shape=320):
-	img=Image.open(image_name)#.convert('RGB')
-	image=img.resize((shape,shape))
-	image=loader(image).unsqueeze(0)
-	image=image.to('cuda:'+str(gpu), torch.float32)
-	if image.shape[1]>1:
-		image=image[:,0,:,:]
-		image=torch.reshape(image,(1,1,shape,shape))
-	return image
+	def __getitem__(self,id):
+		vis,ir=self.load_image(id)
+		W,H=vis.size
+		vis=self.transforms(vis)
+		ir=self.transforms(ir)
+		return [vis,ir]
 
-def load_train_data(path,batch,batch_size,gpu):
-	dirname=os.listdir(path)
-	imgname=[]
-	for i in dirname:
-		img=os.listdir(path+i)
-		img=[path+i+'/'+img[0],path+i+'/'+img[1]]
-		imgname.append(img)
-	for i in range(batch*batch_size,min(len(imgname),(batch+1)*batch_size)):
-		if i==batch*batch_size:
-			train_data1=image_loader(imgname[i][0],gpu,256)
-			train_data2=image_loader(imgname[i][1],gpu,64)
-		else:
-			data1=image_loader(imgname[i][0],gpu,256)
-			data2=image_loader(imgname[i][1],gpu,64)
-			train_data1=torch.cat((train_data1,data1),0)
-			train_data2=torch.cat((train_data2,data2),0)
-	return train_data1,train_data2,len(imgname)
+	def load_list(self):
+		return [[os.path.join(self.root_dir,x,os.listdir(os.path.join(self.root_dir,x))[0]),\
+				os.path.join(self.root_dir,x,os.listdir(os.path.join(self.root_dir,x))[1])] \
+				for x in os.listdir(self.root_dir)]
+
+	def load_image(self,image_id):
+		image_path=self.imageidlist[image_id]
+		vis=Image.open(image_path[0])
+		ir=Image.open(image_path[1])
+		vis=vis.convert('L')
+		ir=ir.convert('L')
+		# if len(image.split())==1:
+		# 	image=Image.merge('RGB',(image,image,image))
+		return vis,ir
 
 if __name__=='__main__':
-	img1,img2,img=load_train_data('../../dataset/TNO/',0,2,0)
-	print(img1.shape,img2.shape)
+	root_dir='./datasets/TNO'
+	val_dataset=Load_Dataset(root_dir,
+							transforms.Compose([transforms.Resize((512,512)),
+												transforms.ToTensor()]))
+	val_generator=DataLoader(val_dataset,batch_size=2,shuffle=True)
+	num_iter_per_epoch=len(val_generator)
+	print(num_iter_per_epoch)
+
+	for iter,data in enumerate(val_generator):
+		print('iter',iter,data[0].shape,data[1].shape)
