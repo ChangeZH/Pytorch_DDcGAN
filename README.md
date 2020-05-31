@@ -9,13 +9,13 @@ DDCGAN是一种将光学图像与红外图像进行图像融合的生成对抗�
 
 /datasets
 
-//TNO
+/datasets/TNO
 
-///tank
+/datasets/TNO/tank
 
-////1.bmp(可见光图像)
+/datasets/TNO/tank/1.bmp(可见光图像)
 
-////2.bmp(红外图像)
+/datasets/TNO/tank/2.bmp(红外图像)
 
 .
 
