@@ -12,7 +12,7 @@ class L_con(nn.Module):
 			nn.AvgPool2d(3,2,1))
 
 	def forward(self,G,v,i):
-		I=torch.pow(torch.pow((self.down(G)-i),2).sum(),0.5)
+		I=torch.dist(G,i,2)#torch.pow(torch.pow((self.down(G)-i),2).sum(),0.5)
 		r=G-v
 		[W,H]=r.shape[2:4]
 		tv1=torch.pow((r[:,:,1:,:]-r[:,:,:H-1,:]),2).mean()
@@ -26,7 +26,7 @@ class L_adv_G(nn.Module):
 		super(L_adv_G, self).__init__()
 		
 	def forward(self,dv,di):
-		return torch.log(1-dv*0.5).mean()+torch.log(1-di*0.5).mean()
+		return torch.log(abs(1-dv*0.5)).mean()+torch.log(abs(1-di*0.5)).mean()
 
 class L_G(nn.Module):
 	"""docstring for L_G"""
@@ -47,7 +47,7 @@ class L_Dv(nn.Module):
 		super(L_Dv, self).__init__()
 	
 	def  forward(self,dv_v,dv_G):
-		return (-torch.log(dv_v)).mean()+(-torch.log(1-dv_G)).mean()
+		return (-torch.log(abs(dv_v))).mean()+(-torch.log(abs(1-dv_G))).mean()
 
 class L_Di(nn.Module):
 	"""docstring for L_Di"""
@@ -55,7 +55,7 @@ class L_Di(nn.Module):
 		super(L_Di, self).__init__()
 	
 	def  forward(self,di_i,di_G):
-		return (-torch.log(di_i)).mean()+(-torch.log(1-di_G)).mean()
+		return (-torch.log(abs(di_i))).mean()+(-torch.log(abs(1-di_G))).mean()
 
 if __name__=='__main__':
 	vis=torch.rand((1,1,256,256))
