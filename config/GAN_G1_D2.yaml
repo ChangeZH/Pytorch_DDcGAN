@@ -1,0 +1,328 @@
+Dataset:
+  root_dir: datasets/TNO/
+  sensors: ['Vis', 'Inf']
+  input_size: 512
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+
+Train:
+  Base:
+    batch_size: 2
+    epoch: 100
+  Generator:
+    lr: 0.01
+    opt: RMSprop
+    train_times_per_epoch: 5
+    min_loss_per_epoch: 0
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+
+  Discriminator:
+    lr: 0.001
+    opt: SGD
+    train_times_per_epoch: 5
+    min_loss_per_epoch: 0.1
+
+Generator:
+  Generator_Name: ['Generator_1']
+  Input_Datasets: [['Vis','Inf']]
+  Dist_Loss: [['Generator_1','Vis'],['Generator_1','Inf']]
+  Loss_Dist_weight: 1
+  Loss_adv_weight: 1
+
+Discriminator:
+  Discriminator_Name: ['Discriminator_1','Discriminator_2']
+  Input_Datasets: [['Vis','Generator_1'],['Inf','Generator_1']]
+
+Struct:
+  Generator_1:
+    concat_1:
+      type: concat
+      mode: cat
+      layers: ['Vis','Inf']
+
+    layer_1:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 6
+        out_channels: 64
+        kernel_size: 9
+        stride: 1
+        padding: 4
+
+    concat_2:
+      type: concat
+      mode: cat
+      layers: ['Vis','Inf','layer_1']
+
+    layer_2:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 70
+        out_channels: 32
+        kernel_size: 5
+        stride: 1
+        padding: 2
+
+    concat_3:
+      type: concat
+      mode: cat
+      layers: ['concat_1','layer_1','layer_2']
+
+    layer_3:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: Tanh
+      parameters:
+        in_channels: 102
+        out_channels: 3
+        kernel_size: 5
+        stride: 1
+        padding: 2
+
+  Discriminator_1:
+    concat_1:
+      type: concat
+      mode: batch
+      layers: ['Vis','Generator_1']
+
+    layer_1:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 3
+        out_channels: 16
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_2:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 16
+        out_channels: 32
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_3:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 32
+        out_channels: 64
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_4:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 64
+        out_channels: 128
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_5:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 128
+        out_channels: 256
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_6:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: False
+      use_activation: ReLU
+      parameters:
+        in_channels: 256
+        out_channels: 512
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_7:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: False
+      use_activation: ReLU
+      parameters:
+        in_channels: 512
+        out_channels: 512
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_8:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: False
+      use_activation: ReLU
+      parameters:
+        in_channels: 512
+        out_channels: 1
+        kernel_size: 4
+        stride: 1
+
+  Discriminator_2:
+    concat_1:
+      type: concat
+      mode: batch
+      layers: ['Inf','Generator_1']
+
+    layer_1:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 3
+        out_channels: 16
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_2:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 16
+        out_channels: 32
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_3:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 32
+        out_channels: 64
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_4:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 64
+        out_channels: 128
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_5:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: True
+      use_activation: ReLU
+      parameters:
+        in_channels: 128
+        out_channels: 256
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_6:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: False
+      use_activation: ReLU
+      parameters:
+        in_channels: 256
+        out_channels: 512
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_7:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: False
+      use_activation: ReLU
+      parameters:
+        in_channels: 512
+        out_channels: 512
+        kernel_size: 3
+        stride: 2
+        padding: 1
+
+    layer_8:
+      type: conv
+      reuse_times: 1
+      same_weight: False
+      use_residual: False
+      use_bn: False
+      use_activation: ReLU
+      parameters:
+        in_channels: 512
+        out_channels: 1
+        kernel_size: 4
+        stride: 1
